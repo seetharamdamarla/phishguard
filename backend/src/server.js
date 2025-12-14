@@ -84,8 +84,9 @@ app.use((err, req, res, next) => {
 // Start server
 const PORT = process.env.PORT || 3001;
 
-app.listen(PORT, () => {
-    console.log(`
+if (process.env.VERCEL !== '1') {
+    app.listen(PORT, () => {
+        console.log(`
 ╔═══════════════════════════════════════════════════════╗
 ║                                                       ║
 ║   🛡️  PhishGuard API Server                          ║
@@ -104,8 +105,9 @@ app.listen(PORT, () => {
 ║   - GET  /api/analysis/:id/download                  ║
 ║                                                       ║
 ╚═══════════════════════════════════════════════════════╝
-  `);
-});
+      `);
+    });
+}
 
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (err) => {
