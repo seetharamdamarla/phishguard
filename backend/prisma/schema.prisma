@@ -1,0 +1,176 @@
+// Prisma Schema for PhishGuard
+// PostgreSQL Database
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User Model
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String
+  isVerified Boolean @default(false)
+  
+  // OTP fields
+  otp       String?
+  otpExpire DateTime?
+  
+  // Password reset
+  resetPasswordToken  String?
+  resetPasswordExpire DateTime?
+  
+  // Timestamps and metadata
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  lastLogin     DateTime?
+  analysisCount Int      @default(0)
+  
+  // Relations
+  analyses Analysis[]
+  
+  @@index([createdAt])
+  @@index([email])
+  @@map("users")
+}
+
+// Analysis Model
+model Analysis {
+  id          String   @id @default(uuid())
+  userId      String
+  inputText   String   @db.Text
+  riskScore   Float
+  threatLevel ThreatLevel
+  
+  // Recommendations (stored as JSON array)
+  recommendations String[]
+  
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  user                User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  detectedThreats     DetectedThreat[]
+  suspiciousElements  SuspiciousElement[]
+  urlAnalysis         UrlAnalysis[]
+  phishingTactics     PhishingTactic[]
+  metadata            AnalysisMetadata?
+  
+  @@index([userId, createdAt])
+  @@index([threatLevel])
+  @@index([riskScore])
+  @@index([createdAt])
+  @@map("analyses")
+}
+
+// Detected Threat Model (was embedded type in MongoDB)
+model DetectedThreat {
+  id          String   @id @default(uuid())
+  analysisId  String
+  type        String
+  description String?
+  severity    Severity
+  count       Int?
+  keywords    String[]
+  
+  // Relations
+  analysis Analysis @relation(fields: [analysisId], references: [id], onDelete: Cascade)
+  
+  @@index([analysisId])
+  @@map("detected_threats")
+}
+
+// Suspicious Element Model (was embedded type in MongoDB)
+model SuspiciousElement {
+  id             String  @id @default(uuid())
+  analysisId     String
+  text           String?
+  startIndex     Int?
+  endIndex       Int?
+  type           String?
+  riskLevel      String?
+  explanation    String? @db.Text
+  recommendation String? @db.Text
+  
+  // Relations
+  analysis Analysis @relation(fields: [analysisId], references: [id], onDelete: Cascade)
+  
+  @@index([analysisId])
+  @@map("suspicious_elements")
+}
+
+// URL Analysis Model (was embedded type in MongoDB)
+model UrlAnalysis {
+  id         String    @id @default(uuid())
+  analysisId String
+  url        String
+  domain     String?
+  status     UrlStatus
+  issues     String[]
+  riskScore  Float?
+  
+  // Relations
+  analysis Analysis @relation(fields: [analysisId], references: [id], onDelete: Cascade)
+  
+  @@index([analysisId])
+  @@map("url_analysis")
+}
+
+// Phishing Tactic Model (was embedded type in MongoDB)
+model PhishingTactic {
+  id          String  @id @default(uuid())
+  analysisId  String
+  name        String
+  description String? @db.Text
+  confidence  Float?
+  
+  // Relations
+  analysis Analysis @relation(fields: [analysisId], references: [id], onDelete: Cascade)
+  
+  @@index([analysisId])
+  @@map("phishing_tactics")
+}
+
+// Analysis Metadata Model (was embedded type in MongoDB)
+model AnalysisMetadata {
+  id              String   @id @default(uuid())
+  analysisId      String   @unique
+  analysisTime    Int?     // in milliseconds
+  version         String?
+  detectionEngine String?
+  
+  // Relations
+  analysis Analysis @relation(fields: [analysisId], references: [id], onDelete: Cascade)
+  
+  @@map("analysis_metadata")
+}
+
+// Enums
+enum ThreatLevel {
+  Safe
+  LowRisk
+  MediumRisk
+  HighRisk
+  Critical
+}
+
+enum Severity {
+  low
+  medium
+  high
+  critical
+}
+
+enum UrlStatus {
+  safe
+  questionable
+  suspicious
+  malicious
+}
