@@ -3,6 +3,7 @@ services:
   - type: web
     name: phishguard-backend
     env: node
+    plan: free
     rootDir: backend
     buildCommand: npm install
     startCommand: npm start
@@ -16,6 +17,7 @@ services:
   - type: web
     name: phishguard-frontend
     env: node
+    plan: free
     rootDir: frontend
     buildCommand: npm install && npm run build
     startCommand: npx serve -s dist -p $PORT            
