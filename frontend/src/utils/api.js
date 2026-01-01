@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 
-let apiDomain = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+let apiDomain = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 // Ensure protocol is present (Render provides just the host)
 if (!apiDomain.startsWith('http')) {
