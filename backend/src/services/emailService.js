@@ -4,27 +4,28 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 class EmailService {
-    constructor() {
-        this.transporter = nodemailer.createTransport({
-            host: process.env.EMAIL_HOST,
-            port: process.env.EMAIL_PORT,
-            secure: false, // true for 465, false for other ports
-            auth: {
-                user: process.env.EMAIL_USER,
-                pass: process.env.EMAIL_PASSWORD
-            }
-        });
-    }
+  constructor() {
+    this.transporter = nodemailer.createTransport({
+      service: 'gmail', // Use 'gmail' or configure host/port manually
+      host: process.env.EMAIL_HOST || 'smtp.gmail.com',
+      port: parseInt(process.env.EMAIL_PORT) || 587,
+      secure: false, // true for 465, false for other ports
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS // Changed from EMAIL_PASSWORD to match typical env usage
+      }
+    });
+  }
 
-    /**
-     * Send OTP email for verification
-     */
-    async sendOTP(email, name, otp) {
-        const mailOptions = {
-            from: process.env.EMAIL_FROM,
-            to: email,
-            subject: '🔐 PhishGuard - Your Verification Code',
-            html: `
+  /**
+   * Send OTP email for verification
+   */
+  async sendOTP(email, name, otp) {
+    const mailOptions = {
+      from: process.env.EMAIL_FROM,
+      to: email,
+      subject: '🔐 PhishGuard - Your Verification Code',
+      html: `
         <!DOCTYPE html>
         <html>
         <head>
@@ -90,27 +91,27 @@ class EmailService {
         </body>
         </html>
       `
-        };
+    };
 
-        try {
-            await this.transporter.sendMail(mailOptions);
-            console.log(`OTP sent to ${email}`);
-            return true;
-        } catch (error) {
-            console.error('Error sending OTP email:', error);
-            throw new Error('Failed to send verification email');
-        }
+    try {
+      await this.transporter.sendMail(mailOptions);
+      console.log(`OTP sent to ${email}`);
+      return true;
+    } catch (error) {
+      console.error('Error sending OTP email:', error);
+      throw new Error('Failed to send verification email');
     }
+  }
 
-    /**
-     * Send welcome email after successful verification
-     */
-    async sendWelcomeEmail(email, name) {
-        const mailOptions = {
-            from: process.env.EMAIL_FROM,
-            to: email,
-            subject: '🎉 Welcome to PhishGuard!',
-            html: `
+  /**
+   * Send welcome email after successful verification
+   */
+  async sendWelcomeEmail(email, name) {
+    const mailOptions = {
+      from: process.env.EMAIL_FROM,
+      to: email,
+      subject: '🎉 Welcome to PhishGuard!',
+      html: `
         <!DOCTYPE html>
         <html>
         <head>
@@ -185,30 +186,30 @@ class EmailService {
         </body>
         </html>
       `
-        };
+    };
 
-        try {
-            await this.transporter.sendMail(mailOptions);
-            console.log(`Welcome email sent to ${email}`);
-            return true;
-        } catch (error) {
-            console.error('Error sending welcome email:', error);
-            // Don't throw error for welcome email - it's not critical
-            return false;
-        }
+    try {
+      await this.transporter.sendMail(mailOptions);
+      console.log(`Welcome email sent to ${email}`);
+      return true;
+    } catch (error) {
+      console.error('Error sending welcome email:', error);
+      // Don't throw error for welcome email - it's not critical
+      return false;
     }
+  }
 
-    /**
-     * Send password reset email
-     */
-    async sendPasswordResetEmail(email, name, resetToken) {
-        const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
+  /**
+   * Send password reset email
+   */
+  async sendPasswordResetEmail(email, name, resetToken) {
+    const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
 
-        const mailOptions = {
-            from: process.env.EMAIL_FROM,
-            to: email,
-            subject: '🔑 PhishGuard - Password Reset Request',
-            html: `
+    const mailOptions = {
+      from: process.env.EMAIL_FROM,
+      to: email,
+      subject: '🔑 PhishGuard - Password Reset Request',
+      html: `
         <!DOCTYPE html>
         <html>
         <head>
@@ -267,17 +268,17 @@ class EmailService {
         </body>
         </html>
       `
-        };
+    };
 
-        try {
-            await this.transporter.sendMail(mailOptions);
-            console.log(`Password reset email sent to ${email}`);
-            return true;
-        } catch (error) {
-            console.error('Error sending password reset email:', error);
-            throw new Error('Failed to send password reset email');
-        }
+    try {
+      await this.transporter.sendMail(mailOptions);
+      console.log(`Password reset email sent to ${email}`);
+      return true;
+    } catch (error) {
+      console.error('Error sending password reset email:', error);
+      throw new Error('Failed to send password reset email');
     }
+  }
 }
 
 export default new EmailService();
