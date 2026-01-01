@@ -13,16 +13,12 @@ services:
       # DATABASE_URL, JWT_SECRET, EMAIL_USER, EMAIL_PASS, etc.
 
   # Frontend Deployment
-  - type: static
+  - type: web
     name: phishguard-frontend
-    env: static
+    env: node
     rootDir: frontend
     buildCommand: npm install && npm run build
-    publishDir: dist
-    routes:
-      - type: rewrite
-        source: /*
-        destination: /index.html
+    startCommand: npx serve -s dist -p $PORT            
     envVars:
       - key: VITE_API_URL
         fromService:
