@@ -86,32 +86,14 @@ const PORT = process.env.PORT || 3001;
 
 if (process.env.VERCEL !== '1') {
     app.listen(PORT, () => {
-        console.log(`
-╔═══════════════════════════════════════════════════════╗
-║                                                       ║
-║   🛡️  PhishGuard API Server                          ║
-║                                                       ║
-║   Status: ✅ Running                                  ║
-║   Port: ${PORT}                                        ║
-║   Environment: ${process.env.NODE_ENV || 'development'}                              ║
-║   URL: http://localhost:${PORT}                        ║
-║                                                       ║
-║   📚 API Endpoints:                                   ║
-║   - POST /api/auth/register                          ║
-║   - POST /api/auth/login                             ║
-║   - POST /api/auth/verify-otp                        ║
-║   - POST /api/analysis/analyze                       ║
-║   - GET  /api/analysis/history                       ║
-║   - GET  /api/analysis/:id/download                  ║
-║                                                       ║
-╚═══════════════════════════════════════════════════════╝
-      `);
+        console.log(`PhishGuard API is running on port ${PORT} in ${process.env.NODE_ENV || 'development'} mode`);
+
     });
 }
 
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (err) => {
-    console.error('❌ Unhandled Promise Rejection:', err);
+    console.error('Unhandled Promise Rejection:', err);
     // Close server & exit process
     process.exit(1);
 });

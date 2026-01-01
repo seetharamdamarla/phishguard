@@ -16,11 +16,13 @@ if (process.env.NODE_ENV !== 'production') {
 export const connectDB = async () => {
     try {
         await prisma.$connect();
-        console.log('✅ Prisma Connected to PostgreSQL (Supabase)');
-        console.log(`📊 Database: ${process.env.DATABASE_URL?.split('/').pop()?.split('?')[0] || 'phishguard'}`);
+        console.log('Prisma Connected to PostgreSQL (Supabase)');
+        console.log(`Database: ${process.env.DATABASE_URL?.split('/').pop()?.split('?')[0] || 'phishguard'}`);
     } catch (error) {
-        console.error(`❌ Prisma Connection Error: ${error.message}`);
-        process.exit(1);
+        console.error(`Prisma Connection Error: ${error.message}`);
+        console.error('The application will start without a database connection, but some features may not work.');
+        console.error('Check your DATABASE_URL in .env and ensure your Supabase project is active.');
+        // process.exit(1); // Do not exit, keep the server running for debugging
     }
 };
 
