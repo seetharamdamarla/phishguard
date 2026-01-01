@@ -104,7 +104,7 @@ const AuthPage = () => {
         }
     };
 
-    const handleResendOTP = async () => {
+    const handleResendOTP = async (_) => {
         setLoading(true);
         setError('');
         setSuccessMessage('');
