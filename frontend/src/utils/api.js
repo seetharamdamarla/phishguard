@@ -1,6 +1,12 @@
 import axios from 'axios';
 
-const apiDomain = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+let apiDomain = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
+// Ensure protocol is present (Render provides just the host)
+if (!apiDomain.startsWith('http')) {
+    apiDomain = `https://${apiDomain}`;
+}
+
 const API_BASE_URL = apiDomain.endsWith('/api') ? apiDomain : `${apiDomain}/api`;
 
 const api = axios.create({
