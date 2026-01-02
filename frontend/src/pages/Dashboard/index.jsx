@@ -1,13 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import {
-    Shield, LogOut, Mail, FileText, Download, Trash2, UploadCloud,
-    AlertTriangle, CheckCircle, Loader2,
-    Search, Filter, ChevronRight, XCircle, AlertOctagon,
-    Lock, Phone, Info, ShieldAlert, ShieldCheck,
-    TrendingUp, Target, Activity, Calendar, Clock
+    Shield, LogOut, Trash2, UploadCloud,
+    AlertTriangle, CheckCircle, Loader2, Search,
+    Lock, Phone, Info, ShieldAlert, XCircle, AlertOctagon,
+    Mail, FileText, Target, TrendingUp, ArrowRight, Sparkles
 } from 'lucide-react';
 import api from '../../utils/api';
 
@@ -20,81 +19,35 @@ const Dashboard = () => {
     const [currentAnalysis, setCurrentAnalysis] = useState(null);
 
     // File upload states
-    const [inputMode, setInputMode] = useState('text'); // 'text' or 'file'
+    const [inputMode, setInputMode] = useState('text');
     const [selectedFile, setSelectedFile] = useState(null);
     const [dragActive, setDragActive] = useState(false);
     const fileInputRef = React.useRef(null);
 
-    // Helper function to parse recommendation and get icon
     const getRecommendationIcon = (text) => {
-        // Remove emoji and get clean text
         const cleanText = text.replace(/^[\u{1F300}-\u{1F9FF}]|^[\u{2600}-\u{26FF}]|^[\u{2700}-\u{27BF}]/u, '').trim();
 
         if (text.startsWith('🚨') || text.includes('DO NOT')) {
-            return {
-                icon: XCircle,
-                color: 'text-red-400',
-                bgColor: 'bg-red-500/10',
-                borderColor: 'border-red-500/30',
-                text: cleanText
-            };
+            return { icon: XCircle, color: 'text-red-600', bgColor: 'bg-red-50', borderColor: 'border-red-200', text: cleanText };
         } else if (text.startsWith('⚠️') || text.includes('Suspicious')) {
-            return {
-                icon: AlertOctagon,
-                color: 'text-orange-400',
-                bgColor: 'bg-orange-500/10',
-                borderColor: 'border-orange-500/30',
-                text: cleanText
-            };
-        } else if (text.startsWith('🔐') || text.includes('password') || text.includes('credentials')) {
-            return {
-                icon: Lock,
-                color: 'text-yellow-400',
-                bgColor: 'bg-yellow-500/10',
-                borderColor: 'border-yellow-500/30',
-                text: cleanText
-            };
-        } else if (text.startsWith('📞') || text.includes('Verify') || text.includes('contact')) {
-            return {
-                icon: Phone,
-                color: 'text-blue-400',
-                bgColor: 'bg-blue-500/10',
-                borderColor: 'border-blue-500/30',
-                text: cleanText
-            };
-        } else if (text.startsWith('✅') || text.includes('Enable') || text.includes('Report') || text.includes('Keep')) {
-            return {
-                icon: CheckCircle,
-                color: 'text-green-400',
-                bgColor: 'bg-green-500/10',
-                borderColor: 'border-green-500/30',
-                text: cleanText
-            };
+            return { icon: AlertOctagon, color: 'text-orange-600', bgColor: 'bg-orange-50', borderColor: 'border-orange-200', text: cleanText };
+        } else if (text.startsWith('🔐') || text.includes('password')) {
+            return { icon: Lock, color: 'text-yellow-600', bgColor: 'bg-yellow-50', borderColor: 'border-yellow-200', text: cleanText };
+        } else if (text.startsWith('📞') || text.includes('Verify')) {
+            return { icon: Phone, color: 'text-blue-600', bgColor: 'bg-blue-50', borderColor: 'border-blue-200', text: cleanText };
+        } else if (text.startsWith('✅') || text.includes('Enable')) {
+            return { icon: CheckCircle, color: 'text-emerald-600', bgColor: 'bg-emerald-50', borderColor: 'border-emerald-200', text: cleanText };
         } else if (text.startsWith('ℹ️')) {
-            return {
-                icon: Info,
-                color: 'text-cyan-400',
-                bgColor: 'bg-cyan-500/10',
-                borderColor: 'border-cyan-500/30',
-                text: cleanText
-            };
+            return { icon: Info, color: 'text-cyan-600', bgColor: 'bg-cyan-50', borderColor: 'border-cyan-200', text: cleanText };
         } else {
-            return {
-                icon: ShieldAlert,
-                color: 'text-blue-400',
-                bgColor: 'bg-blue-500/10',
-                borderColor: 'border-blue-500/30',
-                text: cleanText
-            };
+            return { icon: ShieldAlert, color: 'text-indigo-600', bgColor: 'bg-indigo-50', borderColor: 'border-indigo-200', text: cleanText };
         }
     };
 
-    // File upload handlers
     const handleFileSelect = async (e) => {
         const file = e.target.files?.[0];
         if (file && file.name.endsWith('.eml')) {
             setSelectedFile(file);
-            // Read file content
             const text = await file.text();
             setInputText(text);
         } else {
@@ -116,7 +69,6 @@ const Dashboard = () => {
         const file = e.dataTransfer.files?.[0];
         if (file && file.name.endsWith('.eml')) {
             setSelectedFile(file);
-            // Read file content
             const text = await file.text();
             setInputText(text);
         } else {
@@ -142,60 +94,7 @@ const Dashboard = () => {
         }
     };
 
-    const handleDownload = async (analysisId) => {
-        try {
-            console.log('Downloading report for analysis:', analysisId);
-            console.log('Analysis ID type:', typeof analysisId);
 
-            if (!analysisId) {
-                alert('Error: Analysis ID is missing. Please try analyzing the content again.');
-                return;
-            }
-
-            const response = await api.get(`/analysis/${analysisId}/download`, {
-                responseType: 'blob'
-            });
-
-            const url = window.URL.createObjectURL(new Blob([response.data]));
-            const link = document.createElement('a');
-            link.href = url;
-            link.setAttribute('download', `phishguard-report-${analysisId}.pdf`);
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
-            window.URL.revokeObjectURL(url);
-
-            console.log('Report downloaded successfully');
-        } catch (error) {
-            console.error('Download failed:', error);
-            console.error('Error response:', error.response);
-
-            let errorMessage = 'Failed to download report.\n\n';
-
-            // Try to read the blob as text to get the actual error message
-            if (error.response?.data instanceof Blob) {
-                try {
-                    const text = await error.response.data.text();
-                    const jsonError = JSON.parse(text);
-                    errorMessage += `Server says: ${jsonError.message}\n`;
-                    errorMessage += `Status: ${error.response.status}`;
-                } catch (e) {
-                    errorMessage += `Status: ${error.response?.status}\n`;
-                    errorMessage += `Please check the browser console for details.`;
-                }
-            } else if (error.response?.status === 404) {
-                errorMessage += 'Analysis not found.';
-            } else if (error.response?.status === 403) {
-                errorMessage += 'You do not have permission to access this report.';
-            } else if (error.response?.status === 500) {
-                errorMessage += 'Server error while generating the report.';
-            } else {
-                errorMessage += 'Please try again later.';
-            }
-
-            alert(errorMessage);
-        }
-    };
 
     const handleLogout = () => {
         logout();
@@ -204,50 +103,50 @@ const Dashboard = () => {
 
     const getThreatColor = (threatLevel) => {
         const colors = {
-            'Safe': 'text-green-500',
-            'Low Risk': 'text-yellow-500',
-            'Medium Risk': 'text-orange-500',
-            'High Risk': 'text-red-500',
+            'Safe': 'text-emerald-600',
+            'LowRisk': 'text-yellow-600',
+            'MediumRisk': 'text-orange-600',
+            'HighRisk': 'text-red-600',
             'Critical': 'text-red-700'
         };
-        return colors[threatLevel] || 'text-gray-500';
+        return colors[threatLevel] || 'text-slate-600';
     };
 
     const getThreatBg = (threatLevel) => {
         const colors = {
-            'Safe': 'bg-green-500/20 border-green-500/50',
-            'Low Risk': 'bg-yellow-500/20 border-yellow-500/50',
-            'Medium Risk': 'bg-orange-500/20 border-orange-500/50',
-            'High Risk': 'bg-red-500/20 border-red-500/50',
-            'Critical': 'bg-red-700/20 border-red-700/50'
+            'Safe': 'bg-emerald-50 border-emerald-200',
+            'LowRisk': 'bg-yellow-50 border-yellow-200',
+            'MediumRisk': 'bg-orange-50 border-orange-200',
+            'HighRisk': 'bg-red-50 border-red-200',
+            'Critical': 'bg-red-100 border-red-300'
         };
-        return colors[threatLevel] || 'bg-gray-500/20 border-gray-500/50';
+        return colors[threatLevel] || 'bg-slate-50 border-slate-200';
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
             {/* Header */}
-            <header className="bg-white/10 backdrop-blur-xl border-b border-white/20">
+            <header className="bg-white/80 backdrop-blur-xl border-b border-slate-200/50 sticky top-0 z-40">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/30">
+                            <div className="w-10 h-10 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/30">
                                 <Shield className="w-6 h-6 text-white" />
                             </div>
                             <div>
-                                <h1 className="text-xl font-bold text-white">PhishGuard</h1>
-                                <p className="text-xs text-blue-200">Advanced Detection</p>
+                                <h1 className="text-lg font-bold text-slate-900">PhishGuard</h1>
+                                <p className="text-xs text-slate-600">AI-Powered Protection</p>
                             </div>
                         </div>
 
                         <div className="flex items-center gap-4">
                             <div className="text-right hidden sm:block">
-                                <p className="text-sm font-medium text-white">{user?.name}</p>
-                                <p className="text-xs text-blue-200">{user?.email}</p>
+                                <p className="text-sm font-semibold text-slate-900">{user?.name}</p>
+                                <p className="text-xs text-slate-600">{user?.email}</p>
                             </div>
                             <button
                                 onClick={handleLogout}
-                                className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl transition-all"
+                                className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition-all font-medium"
                             >
                                 <LogOut className="w-4 h-4" />
                                 <span className="hidden sm:inline">Logout</span>
@@ -260,17 +159,17 @@ const Dashboard = () => {
             {/* Main Content */}
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {/* Tab Navigation */}
-                <div className="flex gap-2 mb-6">
+                <div className="flex gap-2 mb-8">
                     {[
-                        { id: 'analyze', label: 'Analyze', icon: Search },
+                        { id: 'analyze', label: 'Analyze', icon: Sparkles },
                         { id: 'results', label: 'Results', icon: FileText }
                     ].map((tab) => (
                         <button
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id)}
-                            className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-colors ${activeTab === tab.id
-                                ? 'bg-blue-600 text-white'
-                                : 'bg-white/10 text-white/70 hover:bg-white/15'
+                            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold transition-all border ${activeTab === tab.id
+                                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30 border-indigo-600'
+                                : 'bg-white text-slate-600 hover:bg-slate-50 border-slate-200'
                                 }`}
                         >
                             <tab.icon className="w-4 h-4" />
@@ -282,33 +181,32 @@ const Dashboard = () => {
                 {/* Tab Content */}
                 <div>
                     {/* Analyze Tab */}
-                    {/* Analyze Tab */}
                     {activeTab === 'analyze' && (
                         <motion.div
-                            initial={{ opacity: 0, scale: 0.95 }}
+                            initial={{ opacity: 0, scale: 0.98 }}
                             animate={{ opacity: 1, scale: 1 }}
-                            className="backdrop-blur-2xl bg-white/5 rounded-3xl border border-white/10 overflow-hidden shadow-2xl"
+                            className="bg-white rounded-2xl border border-slate-200 shadow-xl overflow-hidden"
                         >
-                            {/* Header & Toggle */}
-                            <div className="p-8 pb-0">
-                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+                            {/* Header */}
+                            <div className="p-8 pb-6 border-b border-slate-100">
+                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                                     <div>
-                                        <h2 className="text-2xl font-bold text-white mb-2 flex items-center gap-2">
-                                            <Search className="w-6 h-6 text-blue-400" />
+                                        <h2 className="text-2xl font-bold text-slate-900 mb-2 flex items-center gap-2">
+                                            <Sparkles className="w-6 h-6 text-indigo-600" />
                                             Analyze Content
                                         </h2>
-                                        <p className="text-blue-200/60">
-                                            Detect phishing in emails, URLs, or text snippets
+                                        <p className="text-slate-600">
+                                            Detect phishing in emails, URLs, or text
                                         </p>
                                     </div>
 
-                                    {/* Premium Toggle */}
-                                    <div className="bg-black/20 p-1 rounded-xl flex self-start md:self-auto border border-white/5">
+                                    {/* Toggle */}
+                                    <div className="bg-slate-100 p-1 rounded-xl flex self-start md:self-auto">
                                         <button
                                             onClick={() => setInputMode('text')}
-                                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${inputMode === 'text'
-                                                ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20'
-                                                : 'text-white/60 hover:text-white hover:bg-white/5'
+                                            className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 ${inputMode === 'text'
+                                                ? 'bg-white text-slate-900 shadow-sm'
+                                                : 'text-slate-600 hover:text-slate-900'
                                                 }`}
                                         >
                                             <FileText className="w-4 h-4" />
@@ -316,9 +214,9 @@ const Dashboard = () => {
                                         </button>
                                         <button
                                             onClick={() => setInputMode('file')}
-                                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${inputMode === 'file'
-                                                ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20'
-                                                : 'text-white/60 hover:text-white hover:bg-white/5'
+                                            className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 ${inputMode === 'file'
+                                                ? 'bg-white text-slate-900 shadow-sm'
+                                                : 'text-slate-600 hover:text-slate-900'
                                                 }`}
                                         >
                                             <UploadCloud className="w-4 h-4" />
@@ -328,18 +226,18 @@ const Dashboard = () => {
                                 </div>
                             </div>
 
-                            {/* Main Input Area */}
-                            <div className="p-8 pt-0">
+                            {/* Input Area */}
+                            <div className="p-8">
                                 {inputMode === 'text' ? (
-                                    <div className="relative group">
+                                    <div className="relative">
                                         <textarea
                                             value={inputText}
                                             onChange={(e) => setInputText(e.target.value)}
-                                            placeholder="Paste the suspicious content here..."
-                                            className="w-full h-64 p-6 bg-black/20 border border-white/10 rounded-2xl text-white placeholder-white/30 focus:outline-none focus:border-blue-500/50 focus:bg-black/30 focus:ring-1 focus:ring-blue-500/50 resize-none transition-all font-mono text-sm leading-relaxed"
+                                            placeholder="Paste your suspicious email content, URL, or text here..."
+                                            className="w-full h-64 p-5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 resize-none transition-all font-mono text-sm leading-relaxed"
                                         />
-                                        <div className="absolute bottom-4 right-4 text-xs text-white/20 pointer-events-none">
-                                            Accepts URLs, Email Headers, Body Text
+                                        <div className="absolute bottom-4 right-4 text-xs text-slate-400 pointer-events-none">
+                                            Supports URLs, Email Headers & Body
                                         </div>
                                     </div>
                                 ) : (
@@ -347,9 +245,9 @@ const Dashboard = () => {
                                         onDragOver={handleDragOver}
                                         onDrop={handleDrop}
                                         onClick={() => fileInputRef.current?.click()}
-                                        className={`h-64 border-2 border-dashed rounded-2xl cursor-pointer transition-all relative overflow-hidden group ${dragActive
-                                            ? 'border-blue-500 bg-blue-500/10'
-                                            : 'border-white/10 bg-black/20 hover:border-white/20 hover:bg-black/30'
+                                        className={`h-64 border-2 border-dashed rounded-xl cursor-pointer transition-all ${dragActive
+                                            ? 'border-indigo-500 bg-indigo-50'
+                                            : 'border-slate-300 bg-slate-50 hover:border-slate-400 hover:bg-slate-100'
                                             }`}
                                     >
                                         <input
@@ -360,24 +258,19 @@ const Dashboard = () => {
                                             className="hidden"
                                         />
 
-                                        {/* Background Grid Pattern */}
-                                        <div className="absolute inset-0 opacity-10 pointer-events-none"
-                                            style={{ backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)', backgroundSize: '24px 24px' }}>
-                                        </div>
-
-                                        <div className="h-full flex flex-col items-center justify-center p-6 relative z-10">
+                                        <div className="h-full flex flex-col items-center justify-center p-6">
                                             {selectedFile ? (
                                                 <motion.div
                                                     initial={{ opacity: 0, scale: 0.9 }}
                                                     animate={{ opacity: 1, scale: 1 }}
-                                                    className="w-full max-w-sm bg-gray-900/50 border border-white/10 rounded-xl p-4 flex items-center gap-4 group-hover:border-white/20 transition-colors"
+                                                    className="w-full max-w-sm bg-white border border-slate-200 rounded-xl p-4 flex items-center gap-4"
                                                 >
-                                                    <div className="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center shrink-0">
-                                                        <Mail className="w-6 h-6 text-blue-400" />
+                                                    <div className="w-12 h-12 bg-indigo-50 rounded-lg flex items-center justify-center shrink-0">
+                                                        <Mail className="w-6 h-6 text-indigo-600" />
                                                     </div>
                                                     <div className="flex-1 min-w-0">
-                                                        <p className="text-white font-medium truncate">{selectedFile.name}</p>
-                                                        <p className="text-blue-300/60 text-xs">
+                                                        <p className="text-slate-900 font-semibold truncate">{selectedFile.name}</p>
+                                                        <p className="text-slate-500 text-xs">
                                                             {(selectedFile.size / 1024).toFixed(2)} KB • .EML File
                                                         </p>
                                                     </div>
@@ -387,22 +280,21 @@ const Dashboard = () => {
                                                             setSelectedFile(null);
                                                             setInputText('');
                                                         }}
-                                                        className="p-2 hover:bg-white/10 rounded-lg text-white/40 hover:text-red-400 transition-colors"
-                                                        title="Remove File"
+                                                        className="p-2 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-red-600 transition-colors"
                                                     >
                                                         <Trash2 className="w-5 h-5" />
                                                     </button>
                                                 </motion.div>
                                             ) : (
-                                                <div className="text-center group-hover:scale-105 transition-transform duration-300">
-                                                    <div className="w-16 h-16 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-white/10 shadow-xl shadow-blue-500/10">
-                                                        <UploadCloud className="w-8 h-8 text-blue-400" />
+                                                <div className="text-center">
+                                                    <div className="w-16 h-16 bg-indigo-50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-indigo-200">
+                                                        <UploadCloud className="w-8 h-8 text-indigo-600" />
                                                     </div>
-                                                    <p className="text-white font-medium text-lg mb-1">
+                                                    <p className="text-slate-900 font-semibold text-lg mb-1">
                                                         Drop your .EML file here
                                                     </p>
-                                                    <p className="text-white/40 text-sm">
-                                                        or click anywhere to browse
+                                                    <p className="text-slate-500 text-sm">
+                                                        or click to browse
                                                     </p>
                                                 </div>
                                             )}
@@ -411,22 +303,22 @@ const Dashboard = () => {
                                 )}
                             </div>
 
-                            {/* Action Bar */}
-                            <div className="p-8 pt-4 bg-black/10 border-t border-white/5 flex gap-4">
+                            {/* Action Button */}
+                            <div className="p-8 pt-4 bg-slate-50 border-t border-slate-100">
                                 <button
                                     onClick={handleAnalyze}
                                     disabled={(!inputText.trim() && !selectedFile) || analyzing}
-                                    className="flex-1 py-3.5 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white font-bold rounded-xl shadow-lg shadow-blue-500/20 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none flex items-center justify-center gap-2 transition-all transform hover:-translate-y-0.5 active:translate-y-0"
+                                    className="w-full py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-500/30 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none flex items-center justify-center gap-2 transition-all transform hover:-translate-y-0.5 disabled:transform-none"
                                 >
                                     {analyzing ? (
                                         <>
                                             <Loader2 className="w-5 h-5 animate-spin" />
-                                            <span>Running Analysis...</span>
+                                            <span>Analyzing...</span>
                                         </>
                                     ) : (
                                         <>
                                             <Shield className="w-5 h-5" />
-                                            <span>Analyze Content</span>
+                                            <span>Start Analysis</span>
                                         </>
                                     )}
                                 </button>
@@ -443,12 +335,12 @@ const Dashboard = () => {
                         >
                             {currentAnalysis ? (
                                 <>
-                                    {/* Clean Header Section */}
-                                    <div className="backdrop-blur-xl bg-white/10 rounded-2xl border border-white/20 p-6 mb-6">
+                                    {/* Header */}
+                                    <div className="bg-white rounded-2xl border border-slate-200 shadow-lg p-6">
                                         <div className="flex items-center justify-between flex-wrap gap-4">
                                             <div>
-                                                <h2 className="text-2xl font-bold text-white mb-1">Analysis Report</h2>
-                                                <p className="text-white/60 text-sm">
+                                                <h2 className="text-base font-bold text-slate-900 mb-1">Analysis Report</h2>
+                                                <p className="text-slate-600 text-xs">
                                                     {new Date(currentAnalysis.createdAt).toLocaleDateString('en-US', {
                                                         month: 'short',
                                                         day: 'numeric',
@@ -458,65 +350,55 @@ const Dashboard = () => {
                                                     })}
                                                 </p>
                                             </div>
-
-                                            <button
-                                                onClick={() => handleDownload(currentAnalysis.id || currentAnalysis._id)}
-                                                className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
-                                            >
-                                                <Download className="w-4 h-4" />
-                                                <span>Download PDF</span>
-                                            </button>
                                         </div>
                                     </div>
 
-                                    {/* Stats Overview */}
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                                    {/* Stats */}
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                         {/* Risk Score */}
-                                        <div className="backdrop-blur-xl bg-white/10 rounded-2xl border border-white/20 p-5">
+                                        <div className="bg-white rounded-xl border border-slate-200 shadow-md p-4">
                                             <div className="flex items-center gap-2 mb-3">
-                                                <div className="w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center">
-                                                    <Target className="w-4 h-4 text-blue-400" />
+                                                <div className="w-8 h-8 bg-indigo-50 rounded-lg flex items-center justify-center">
+                                                    <Target className="w-4 h-4 text-indigo-600" />
                                                 </div>
-                                                <span className="text-white/70 text-sm font-medium">Risk Score</span>
+                                                <span className="text-slate-700 text-xs font-semibold">Risk Score</span>
                                             </div>
-                                            <div className="flex items-baseline gap-2">
-                                                <span className="text-4xl font-bold text-white">{currentAnalysis.riskScore}</span>
-                                                <span className="text-white/50 text-sm">/ 100</span>
+                                            <div className="flex items-baseline gap-2 mb-2">
+                                                <span className="text-2xl font-bold text-slate-900">{currentAnalysis.riskScore}</span>
+                                                <span className="text-slate-500 text-xs">/ 100</span>
                                             </div>
-                                            <div className="mt-3 h-2 bg-white/10 rounded-full overflow-hidden">
+                                            <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
                                                 <div
-                                                    className="h-full bg-blue-500 rounded-full transition-all duration-500"
+                                                    className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full transition-all duration-500"
                                                     style={{ width: `${currentAnalysis.riskScore}%` }}
                                                 />
                                             </div>
                                         </div>
 
                                         {/* Threat Level */}
-                                        <div className={`backdrop-blur-xl rounded-2xl border p-5 ${getThreatBg(currentAnalysis.threatLevel)}`}>
+                                        <div className={`rounded-xl border shadow-md p-4 ${getThreatBg(currentAnalysis.threatLevel)}`}>
                                             <div className="flex items-center gap-2 mb-3">
-                                                <div className={`w-8 h-8 ${getThreatBg(currentAnalysis.threatLevel)} rounded-lg flex items-center justify-center border ${getThreatBg(currentAnalysis.threatLevel).split(' ')[1]}`}>
+                                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${getThreatBg(currentAnalysis.threatLevel)}`}>
                                                     <ShieldAlert className={`w-4 h-4 ${getThreatColor(currentAnalysis.threatLevel)}`} />
                                                 </div>
-                                                <span className="text-white/70 text-sm font-medium">Threat Level</span>
+                                                <span className="text-slate-700 text-xs font-semibold">Threat Level</span>
                                             </div>
-                                            <div className="flex items-center gap-2">
-                                                <span className={`text-2xl font-bold ${getThreatColor(currentAnalysis.threatLevel)}`}>
-                                                    {currentAnalysis.threatLevel}
-                                                </span>
-                                            </div>
+                                            <span className={`text-lg font-bold ${getThreatColor(currentAnalysis.threatLevel)}`}>
+                                                {currentAnalysis.threatLevel}
+                                            </span>
                                         </div>
 
-                                        {/* Threats Detected */}
-                                        <div className="backdrop-blur-xl bg-white/10 rounded-2xl border border-white/20 p-5">
+                                        {/* Threats Found */}
+                                        <div className="bg-white rounded-xl border border-slate-200 shadow-md p-4">
                                             <div className="flex items-center gap-2 mb-3">
-                                                <div className="w-8 h-8 bg-orange-500/20 rounded-lg flex items-center justify-center">
-                                                    <AlertTriangle className="w-4 h-4 text-orange-400" />
+                                                <div className="w-8 h-8 bg-orange-50 rounded-lg flex items-center justify-center">
+                                                    <AlertTriangle className="w-4 h-4 text-orange-600" />
                                                 </div>
-                                                <span className="text-white/70 text-sm font-medium">Issues Found</span>
+                                                <span className="text-slate-700 text-xs font-semibold">Issues Found</span>
                                             </div>
                                             <div className="flex items-baseline gap-2">
-                                                <span className="text-4xl font-bold text-white">{currentAnalysis.detectedThreats?.length || 0}</span>
-                                                <span className="text-white/50 text-sm">
+                                                <span className="text-2xl font-bold text-slate-900">{currentAnalysis.detectedThreats?.length || 0}</span>
+                                                <span className="text-slate-500 text-xs">
                                                     {currentAnalysis.detectedThreats?.length === 1 ? 'threat' : 'threats'}
                                                 </span>
                                             </div>
@@ -525,87 +407,97 @@ const Dashboard = () => {
 
                                     {/* Detected Threats */}
                                     {currentAnalysis.detectedThreats && currentAnalysis.detectedThreats.length > 0 && (
-                                        <div className="backdrop-blur-xl bg-white/10 rounded-2xl border border-white/20 p-6 mb-6">
-                                            <h3 className="text-lg font-semibold text-white mb-4">Detected Threats</h3>
-
-                                            <div className="space-y-3">
-                                                {currentAnalysis.detectedThreats.map((threat, index) => {
-                                                    const getSeverityColor = (severity) => {
-                                                        const colors = {
-                                                            'critical': { bg: 'bg-red-500/10', border: 'border-red-500/30', text: 'text-red-400' },
-                                                            'high': { bg: 'bg-orange-500/10', border: 'border-orange-500/30', text: 'text-orange-400' },
-                                                            'medium': { bg: 'bg-yellow-500/10', border: 'border-yellow-500/30', text: 'text-yellow-400' },
-                                                            'low': { bg: 'bg-blue-500/10', border: 'border-blue-500/30', text: 'text-blue-400' }
+                                        <div className="bg-white rounded-xl border border-slate-200 shadow-md overflow-hidden">
+                                            <div className="bg-slate-50 border-b border-slate-200 px-5 py-3">
+                                                <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                                                    <AlertTriangle className="w-4 h-4 text-red-600" />
+                                                    Detected Threats
+                                                </h3>
+                                            </div>
+                                            <div className="p-4">
+                                                <div className="space-y-2">
+                                                    {currentAnalysis.detectedThreats.map((threat, index) => {
+                                                        const getSeverityColor = (severity) => {
+                                                            const colors = {
+                                                                'critical': { badge: 'bg-red-100 text-red-700 border-red-200', dot: 'bg-red-500' },
+                                                                'high': { badge: 'bg-orange-100 text-orange-700 border-orange-200', dot: 'bg-orange-500' },
+                                                                'medium': { badge: 'bg-yellow-100 text-yellow-700 border-yellow-200', dot: 'bg-yellow-500' },
+                                                                'low': { badge: 'bg-blue-100 text-blue-700 border-blue-200', dot: 'bg-blue-500' }
+                                                            };
+                                                            return colors[severity?.toLowerCase()] || colors.medium;
                                                         };
-                                                        return colors[severity?.toLowerCase()] || colors.medium;
-                                                    };
 
-                                                    const severityStyle = getSeverityColor(threat.severity);
+                                                        const severityStyle = getSeverityColor(threat.severity);
 
-                                                    return (
-                                                        <div
-                                                            key={index}
-                                                            className={`bg-white/5 rounded-xl p-4 border ${severityStyle.border} hover:bg-white/10 transition-colors`}
-                                                        >
-                                                            <div className="flex items-start gap-3">
-                                                                <div className={`flex-shrink-0 w-10 h-10 ${severityStyle.bg} rounded-lg flex items-center justify-center border ${severityStyle.border}`}>
-                                                                    <AlertTriangle className={`w-5 h-5 ${severityStyle.text}`} />
-                                                                </div>
-
-                                                                <div className="flex-1 min-w-0">
-                                                                    <div className="flex items-start justify-between gap-3 mb-1">
-                                                                        <h4 className="font-semibold text-white">{threat.type}</h4>
-                                                                        <span className={`flex-shrink-0 px-2 py-0.5 ${severityStyle.bg} rounded ${severityStyle.text} text-xs font-medium uppercase border ${severityStyle.border}`}>
-                                                                            {threat.severity}
-                                                                        </span>
+                                                        return (
+                                                            <div
+                                                                key={index}
+                                                                className="bg-slate-50 border border-slate-200 rounded-lg p-3 hover:border-slate-300 hover:shadow-sm transition-all"
+                                                            >
+                                                                <div className="flex items-start justify-between gap-3 mb-2">
+                                                                    <div className="flex items-center gap-2">
+                                                                        <div className={`w-2 h-2 rounded-full ${severityStyle.dot}`} />
+                                                                        <h4 className="font-semibold text-slate-900 text-sm">{threat.type}</h4>
                                                                     </div>
-
-                                                                    <p className="text-white/70 text-sm mb-2">
-                                                                        {threat.description}
-                                                                    </p>
-
-                                                                    <div className="flex items-center gap-3 text-xs text-white/50">
-                                                                        <span>Found: {threat.count} {threat.count === 1 ? 'time' : 'times'}</span>
+                                                                    <span className={`px-2 py-0.5 rounded-md text-xs font-semibold border ${severityStyle.badge}`}>
+                                                                        {threat.severity}
+                                                                    </span>
+                                                                </div>
+                                                                <p className="text-slate-600 text-xs leading-relaxed mb-2 ml-4">
+                                                                    {threat.description}
+                                                                </p>
+                                                                <div className="flex items-center gap-2 ml-4">
+                                                                    <div className="text-xs text-slate-500 flex items-center gap-1">
+                                                                        <Target className="w-3 h-3" />
+                                                                        {threat.count} {threat.count === 1 ? 'occurrence' : 'occurrences'}
                                                                     </div>
                                                                 </div>
                                                             </div>
-                                                        </div>
-                                                    );
-                                                })}
+                                                        );
+                                                    })}
+                                                </div>
                                             </div>
                                         </div>
                                     )}
 
                                     {/* Recommendations */}
                                     {currentAnalysis.recommendations && currentAnalysis.recommendations.length > 0 && (
-                                        <div className="backdrop-blur-xl bg-white/10 rounded-2xl border border-white/20 p-6">
-                                            <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                                                <Shield className="w-5 h-5 text-blue-400" />
-                                                Security Recommendations
-                                            </h3>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                                {currentAnalysis.recommendations.map((rec, index) => {
-                                                    const { icon: Icon, color, bgColor, borderColor, text } = getRecommendationIcon(rec);
-                                                    return (
-                                                        <div
-                                                            key={index}
-                                                            className={`flex items-start gap-3 p-3 rounded-lg border ${bgColor} ${borderColor} bg-opacity-30 backdrop-blur-sm transition-colors hover:bg-opacity-40`}
-                                                        >
-                                                            <div className={`flex-shrink-0 w-8 h-8 rounded-lg ${bgColor} ${borderColor} border flex items-center justify-center`}>
-                                                                <Icon className={`w-4 h-4 ${color}`} />
+                                        <div className="bg-white rounded-xl border border-slate-200 shadow-md overflow-hidden">
+                                            <div className="bg-indigo-600 px-5 py-3">
+                                                <h3 className="text-base font-bold text-white flex items-center gap-2">
+                                                    <Shield className="w-4 h-4" />
+                                                    Security Recommendations
+                                                </h3>
+                                            </div>
+                                            <div className="p-4">
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                                    {currentAnalysis.recommendations.map((rec, index) => {
+                                                        const { icon: Icon, color, bgColor, borderColor, text } = getRecommendationIcon(rec);
+                                                        return (
+                                                            <div
+                                                                key={index}
+                                                                className="bg-slate-50 border border-slate-200 rounded-lg p-2.5 hover:border-indigo-300 hover:bg-indigo-50/30 transition-all"
+                                                            >
+                                                                <div className="flex items-start gap-2">
+                                                                    <div className={`flex-shrink-0 w-6 h-6 rounded-md ${bgColor} ${borderColor} border flex items-center justify-center`}>
+                                                                        <Icon className={`w-3.5 h-3.5 ${color}`} />
+                                                                    </div>
+                                                                    <p className="text-slate-700 text-xs leading-relaxed pt-0.5">
+                                                                        {text}
+                                                                    </p>
+                                                                </div>
                                                             </div>
-                                                            <p className="text-white/90 text-sm leading-relaxed py-1">{text}</p>
-                                                        </div>
-                                                    );
-                                                })}
+                                                        );
+                                                    })}
+                                                </div>
                                             </div>
                                         </div>
                                     )}
                                 </>
                             ) : (
-                                <div className="backdrop-blur-xl bg-white/10 rounded-3xl border border-white/20 p-12 text-center">
-                                    <FileText className="w-16 h-16 text-white/50 mx-auto mb-4" />
-                                    <p className="text-white/70">No analysis results yet. Start by analyzing some content!</p>
+                                <div className="bg-white rounded-2xl border border-slate-200 shadow-lg p-12 text-center">
+                                    <FileText className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+                                    <p className="text-slate-600">No analysis results yet. Start by analyzing some content!</p>
                                 </div>
                             )}
                         </motion.div>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { Shield, Mail, Lock, User, Loader2, Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react';
+import { Shield, Mail, Lock, User, Loader2, Eye, EyeOff, AlertCircle, CheckCircle, ArrowRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const AuthPage = () => {
@@ -58,7 +58,6 @@ const AuthPage = () => {
     // Handle OTP Box Changes
     const handleOtpChange = (index, value) => {
         if (value.length > 1) {
-            // Handle pasting implies taking last char if manually typed, but usually just takes 1
             value = value.slice(-1);
         }
 
@@ -66,20 +65,17 @@ const AuthPage = () => {
         newOtpDigits[index] = value;
         setOtpDigits(newOtpDigits);
 
-        // Update main formData otp string
         setFormData(prev => ({
             ...prev,
             otp: newOtpDigits.join('')
         }));
 
-        // Move focus to next input
         if (value && index < 5) {
             otpInputRefs.current[index + 1].focus();
         }
     };
 
     const handleOtpKeyDown = (index, e) => {
-        // Move to previous on Backspace if empty
         if (e.key === 'Backspace' && !otpDigits[index] && index > 0) {
             otpInputRefs.current[index - 1].focus();
         }
@@ -98,7 +94,6 @@ const AuthPage = () => {
                 ...prev,
                 otp: newOtpDigits.join('')
             }));
-            // Focus last filled or last input
             const focusIndex = Math.min(pastedData.length, 5);
             otpInputRefs.current[focusIndex]?.focus();
         }
@@ -130,7 +125,6 @@ const AuthPage = () => {
 
         try {
             if (showOTP) {
-                // Ensure full OTP
                 if (formData.otp.length !== 6) {
                     setError('Please enter the full 6-digit code');
                     setLoading(false);
@@ -154,7 +148,6 @@ const AuthPage = () => {
                     setError(result.message);
                 }
             } else {
-                // Client-side validation for registration
                 if (!formData.name.trim()) {
                     setError('Please enter your full name');
                     setLoading(false);
@@ -180,25 +173,25 @@ const AuthPage = () => {
 
     return (
         <>
-            {/* Global Toast Notification - High Z-index matched key for re-renders */}
-            <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[9999] w-full max-w-sm px-4 pointer-events-none">
+            {/* Toast Notification */}
+            <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 w-full max-w-md px-4 pointer-events-none">
                 <AnimatePresence mode='wait'>
                     {(error || successMessage) && (
                         <motion.div
-                            key={error || successMessage} // Force re-render on message change
+                            key={error || successMessage}
                             initial={{ opacity: 0, y: -20, scale: 0.95 }}
                             animate={{ opacity: 1, y: 0, scale: 1 }}
                             exit={{ opacity: 0, y: -20, scale: 0.95 }}
                             transition={{ duration: 0.2 }}
-                            className={`pointer-events-auto flex items-center gap-3 p-4 rounded-xl border shadow-2xl backdrop-blur-md ${error
-                                ? 'bg-red-500/90 border-red-400/50 text-white'
-                                : 'bg-emerald-500/90 border-emerald-400/50 text-white'
+                            className={`pointer-events-auto flex items-start gap-3 p-4 rounded-xl border shadow-lg backdrop-blur-sm ${error
+                                ? 'bg-red-50 border-red-200 text-red-900'
+                                : 'bg-emerald-50 border-emerald-200 text-emerald-900'
                                 }`}
                         >
-                            <div className={`p-2 rounded-full shrink-0 ${error ? 'bg-white/20' : 'bg-white/20'}`}>
-                                {error ? <AlertCircle className="w-5 h-5" /> : <CheckCircle className="w-5 h-5" />}
+                            <div className={`p-2 rounded-lg shrink-0 ${error ? 'bg-red-100' : 'bg-emerald-100'}`}>
+                                {error ? <AlertCircle className="w-5 h-5 text-red-600" /> : <CheckCircle className="w-5 h-5 text-emerald-600" />}
                             </div>
-                            <div className="flex-1 text-sm font-medium">
+                            <div className="flex-1 text-sm font-medium pt-0.5">
                                 {error || successMessage}
                             </div>
                             <button
@@ -206,10 +199,9 @@ const AuthPage = () => {
                                     setError('');
                                     setSuccessMessage('');
                                 }}
-                                className="p-1 rounded-lg hover:bg-white/20 transition-colors"
+                                className="p-1 rounded-lg hover:bg-black/5 transition-colors"
                             >
-                                <span className="sr-only">Dismiss</span>
-                                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                     <path d="M18 6L6 18M6 6l12 12" />
                                 </svg>
                             </button>
@@ -218,28 +210,27 @@ const AuthPage = () => {
                 </AnimatePresence>
             </div>
 
-            {/* Main Application Layout */}
-            <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4 relative z-10">
-                {/* Fixed Background Layer */}
-                <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
-                    <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900" />
-                    <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse" />
-                    <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+            {/* Main Layout */}
+            <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center p-4">
+                {/* Background Elements */}
+                <div className="fixed inset-0 overflow-hidden pointer-events-none">
+                    <div className="absolute top-0 left-1/4 w-96 h-96 bg-indigo-200/30 rounded-full blur-3xl" />
+                    <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-200/30 rounded-full blur-3xl" />
                 </div>
 
-                {/* Content Container */}
+                {/* Content */}
                 <div className="w-full max-w-md relative z-10">
-                    {/* Logo Section */}
+                    {/* Logo */}
                     <motion.div
                         initial={{ opacity: 0, y: -20 }}
                         animate={{ opacity: 1, y: 0 }}
                         className="text-center mb-8"
                     >
-                        <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl mb-4 shadow-lg shadow-blue-500/30 ring-1 ring-white/20">
-                            <Shield className="w-10 h-10 text-white" />
+                        <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-2xl mb-4 shadow-lg shadow-indigo-500/30">
+                            <Shield className="w-8 h-8 text-white" />
                         </div>
-                        <h1 className="text-4xl font-bold text-white mb-2 tracking-tight">PhishGuard</h1>
-                        <p className="text-blue-200/60 font-medium">Advanced Security Platform</p>
+                        <h1 className="text-3xl font-bold text-slate-900 mb-1">PhishGuard</h1>
+                        <p className="text-slate-600 text-sm">Advanced Phishing Protection</p>
                     </motion.div>
 
                     {/* Auth Card */}
@@ -247,31 +238,26 @@ const AuthPage = () => {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.1 }}
-                        className="backdrop-blur-xl bg-white/10 rounded-3xl border border-white/20 p-8 shadow-2xl relative overflow-hidden"
+                        className="bg-white rounded-2xl shadow-xl border border-slate-200/50 p-8"
                     >
-                        {/* Glass Reflection Effect */}
-                        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-white/5 to-transparent pointer-events-none"></div>
-
-                        {/* Content Header */}
-                        <div className="mb-6 relative z-10">
-                            <h2 className="text-2xl font-bold text-white mb-2">
+                        {/* Header */}
+                        <div className="mb-6">
+                            <h2 className="text-2xl font-bold text-slate-900 mb-2">
                                 {showOTP
-                                    ? 'Verify Authorization'
-                                    : (isLogin ? 'Welcome Back' : 'Create Account')}
+                                    ? 'Verify Your Email'
+                                    : (isLogin ? 'Welcome back' : 'Create account')}
                             </h2>
-                            <p className="text-blue-200/60 text-sm">
+                            <p className="text-slate-600 text-sm">
                                 {showOTP
                                     ? `Enter the 6-digit code sent to ${emailForOTP}`
-                                    : (isLogin ? 'Enter your credentials to access the secure dashboard' : 'Get started with advanced phishing protection')}
+                                    : (isLogin ? 'Sign in to your account' : 'Get started with PhishGuard')}
                             </p>
                         </div>
 
-
-
-                        <form onSubmit={handleSubmit} className="space-y-6 relative z-10">
+                        <form onSubmit={handleSubmit} className="space-y-5">
                             {showOTP ? (
                                 <div className="space-y-4">
-                                    <label className="text-white/80 text-sm font-medium ml-1">Verification Code</label>
+                                    <label className="text-slate-700 text-sm font-medium block">Verification Code</label>
                                     <div className="flex gap-2 justify-between">
                                         {otpDigits.map((digit, index) => (
                                             <input
@@ -285,7 +271,7 @@ const AuthPage = () => {
                                                 onKeyDown={(e) => handleOtpKeyDown(index, e)}
                                                 onPaste={handleOtpPaste}
                                                 maxLength={1}
-                                                className="w-12 h-14 bg-white/5 border border-white/20 rounded-xl text-center text-white text-xl font-bold focus:outline-none focus:border-blue-500 focus:bg-white/10 transition-all"
+                                                className="w-12 h-14 bg-slate-50 border border-slate-300 rounded-xl text-center text-slate-900 text-xl font-semibold focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all"
                                             />
                                         ))}
                                     </div>
@@ -294,7 +280,7 @@ const AuthPage = () => {
                                             type="button"
                                             onClick={handleResendOTP}
                                             disabled={loading}
-                                            className="text-sm text-blue-400 hover:text-blue-300 transition-colors disabled:opacity-50"
+                                            className="text-sm text-indigo-600 hover:text-indigo-700 font-medium transition-colors disabled:opacity-50"
                                         >
                                             Resend Code
                                         </button>
@@ -304,16 +290,16 @@ const AuthPage = () => {
                                 <>
                                     {!isLogin && (
                                         <div className="space-y-2">
-                                            <label className="text-white/80 text-sm font-medium ml-1">Full Name</label>
-                                            <div className="relative group">
-                                                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40 group-focus-within:text-blue-400 transition-colors" />
+                                            <label className="text-slate-700 text-sm font-medium block">Full Name</label>
+                                            <div className="relative">
+                                                <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                                                 <input
                                                     type="text"
                                                     name="name"
                                                     value={formData.name}
                                                     onChange={handleChange}
                                                     placeholder="John Doe"
-                                                    className="w-full pl-12 pr-4 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 focus:bg-white/10 transition-all"
+                                                    className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all"
                                                     required
                                                 />
                                             </div>
@@ -321,38 +307,38 @@ const AuthPage = () => {
                                     )}
 
                                     <div className="space-y-2">
-                                        <label className="text-white/80 text-sm font-medium ml-1">Email Address</label>
-                                        <div className="relative group">
-                                            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40 group-focus-within:text-blue-400 transition-colors" />
+                                        <label className="text-slate-700 text-sm font-medium block">Email</label>
+                                        <div className="relative">
+                                            <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                                             <input
                                                 type="email"
                                                 name="email"
                                                 value={formData.email}
                                                 onChange={handleChange}
                                                 placeholder="name@company.com"
-                                                className="w-full pl-12 pr-4 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 focus:bg-white/10 transition-all"
+                                                className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all"
                                                 required
                                             />
                                         </div>
                                     </div>
 
                                     <div className="space-y-2">
-                                        <label className="text-white/80 text-sm font-medium ml-1">Password</label>
-                                        <div className="relative group">
-                                            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40 group-focus-within:text-blue-400 transition-colors" />
+                                        <label className="text-slate-700 text-sm font-medium block">Password</label>
+                                        <div className="relative">
+                                            <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                                             <input
                                                 type={showPassword ? 'text' : 'password'}
                                                 name="password"
                                                 value={formData.password}
                                                 onChange={handleChange}
                                                 placeholder="••••••••"
-                                                className="w-full pl-12 pr-12 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 focus:bg-white/10 transition-all"
+                                                className="w-full pl-11 pr-12 py-3 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all"
                                                 required
                                             />
                                             <button
                                                 type="button"
                                                 onClick={() => setShowPassword(!showPassword)}
-                                                className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/70 transition-colors"
+                                                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
                                             >
                                                 {showPassword ? (
                                                     <EyeOff className="w-5 h-5" />
@@ -368,7 +354,7 @@ const AuthPage = () => {
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className="w-full py-4 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white font-bold rounded-xl transition-all shadow-lg shadow-blue-500/30 hover:shadow-blue-500/40 transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2"
+                                className="w-full py-3.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold rounded-xl transition-all shadow-lg shadow-indigo-500/30 hover:shadow-xl hover:shadow-indigo-500/40 transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2"
                             >
                                 {loading ? (
                                     <>
@@ -378,23 +364,23 @@ const AuthPage = () => {
                                 ) : (
                                     <span>
                                         {showOTP
-                                            ? 'Verify & Access'
-                                            : (isLogin ? 'Sign In' : 'Create Secure Account')}
+                                            ? 'Verify & Continue'
+                                            : (isLogin ? 'Sign In' : 'Create Account')}
                                     </span>
                                 )}
                             </button>
                         </form>
 
-                        {/* Bottom Auth Switch */}
+                        {/* Footer */}
                         {!showOTP ? (
                             <div className="mt-6 text-center">
-                                <p className="text-white/60 text-sm">
-                                    {isLogin ? "Don't have an account yet?" : "Already have an account?"}{' '}
+                                <p className="text-slate-600 text-sm">
+                                    {isLogin ? "Don't have an account?" : "Already have an account?"}{' '}
                                     <button
                                         onClick={() => navigate(isLogin ? '/signup' : '/login')}
-                                        className="text-blue-400 hover:text-blue-300 font-semibold transition-colors inline-flex items-center gap-1"
+                                        className="text-indigo-600 hover:text-indigo-700 font-semibold transition-colors"
                                     >
-                                        {isLogin ? 'Create one now' : 'Sign in here'}
+                                        {isLogin ? 'Sign up' : 'Sign in'}
                                     </button>
                                 </p>
                             </div>
@@ -408,7 +394,7 @@ const AuthPage = () => {
                                         setOtpDigits(['', '', '', '', '', '']);
                                         setFormData(prev => ({ ...prev, otp: '' }));
                                     }}
-                                    className="text-white/40 hover:text-white/70 text-sm transition-colors"
+                                    className="text-slate-600 hover:text-slate-900 text-sm transition-colors font-medium"
                                 >
                                     ← Back to {isLogin ? 'Login' : 'Signup'}
                                 </button>
@@ -416,17 +402,17 @@ const AuthPage = () => {
                         )}
                     </motion.div>
 
-                    {/* Footer Security Badge */}
+                    {/* Security Badge */}
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.2 }}
-                        className="mt-8 text-center"
+                        className="mt-6 text-center"
                     >
-                        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm">
-                            <Shield className="w-4 h-4 text-emerald-400" />
-                            <span className="text-white/40 text-xs font-medium uppercase tracking-wider">
-                                End-to-End Encrypted Session
+                        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/50 backdrop-blur-sm border border-slate-200/50">
+                            <Shield className="w-4 h-4 text-emerald-600" />
+                            <span className="text-slate-600 text-xs font-medium">
+                                Secured with end-to-end encryption
                             </span>
                         </div>
                     </motion.div>

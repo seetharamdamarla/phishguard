@@ -5,6 +5,7 @@ import ErrorBoundary from "components/ErrorBoundary";
 import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import NotFound from "pages/NotFound";
+import LandingPage from './pages/LandingPage';
 import AuthPage from './pages/Auth';
 import Dashboard from './pages/Dashboard';
 import PhishingAnalysisTool from './pages/phishing-analysis-tool';
@@ -17,7 +18,7 @@ const Routes = () => {
           <ScrollToTop />
           <RouterRoutes>
             {/* Public routes */}
-            <Route path="/" element={<Navigate to="/login" replace />} />
+            <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<AuthPage />} />
             <Route path="/signup" element={<AuthPage />} />
 

@@ -447,18 +447,19 @@ class PhishingDetectionService {
 
         if (threats.some(t => t.type === 'Threat Language')) {
             recommendations.push('📞 Verify sender identity through official contact methods');
-            recommendations.push('📞 Legitimate organizations rarely use threatening language');
         }
 
-        recommendations.push('✅ Enable two-factor authentication on all accounts');
-        recommendations.push('✅ Report this message to your IT security team');
-        recommendations.push('✅ Keep your security software updated');
-
-        if (riskScore < 30) {
-            recommendations.push('ℹ️ While this message appears relatively safe, always verify sender identity');
+        // Always include one general recommendation
+        if (riskScore >= 60) {
+            recommendations.push('✅ Report this message to your IT security team immediately');
+        } else if (riskScore >= 30) {
+            recommendations.push('✅ Enable two-factor authentication on all accounts');
+        } else {
+            recommendations.push('ℹ️ While this message appears safe, always verify sender identity');
         }
 
-        return recommendations;
+        // Limit to maximum 6 recommendations for clean UI
+        return recommendations.slice(0, 6);
     }
 
     /**

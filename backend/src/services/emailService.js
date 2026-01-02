@@ -5,14 +5,17 @@ dotenv.config();
 
 class EmailService {
   constructor() {
+    // Support both variable names
+    const emailPass = process.env.EMAIL_PASS || process.env.EMAIL_PASSWORD;
+
     this.transporter = nodemailer.createTransport({
-      service: 'gmail', // Use 'gmail' or configure host/port manually
+      service: 'gmail',
       host: process.env.EMAIL_HOST || 'smtp.gmail.com',
       port: parseInt(process.env.EMAIL_PORT) || 587,
-      secure: false, // true for 465, false for other ports
+      secure: false,
       auth: {
         user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS // Changed from EMAIL_PASSWORD to match typical env usage
+        pass: emailPass
       }
     });
   }
